@@ -1,4 +1,3 @@
-import os
 import logging
 import configparser
 from pyrogram import Client
