@@ -1,12 +1,13 @@
 # create tasks by asking user with text input and inline keyboard
 
-import ckMgr
+import checkManager
 import userStatus
 from datetime import datetime
 from pyrogram.enums.parse_mode import ParseMode
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 check_name_max_len = 16
+max_checks_per_user = 10
 replies = {
     'start': '开始创建新的打卡任务！中途退出，请发送 `/cancel`',
     'step_1': '第一步：请输入打卡任务的名称，{}字以内。'.format(check_name_max_len),
@@ -23,21 +24,13 @@ replies = {
     'malformed_time': '时间格式错误，请重新输入，格式为HH:MM，如 21:00。',
     'malformed_days': '启用日格式错误，请重新输入，格式示例 1111100。',
     'malformed_date': '日期格式错误，请重新输入，格式为 YYYYMMDD，如 20231231。',
+    'max_checks': '您的打卡已达上限，请使用 /del_check 删除后再创建。',
     'error': '程序错误！已重置状态。'
 }
 
 
-def gen_info():
-    info = {
-        'name': '',
-        'id': 0,
-        'user': 0,
-        'verify': True,
-        'remind': '21:00',
-        'deadline': '00:00',
-        'enabled': '1111100',  # enabled day of week, monday is 0
-        'until': None
-    }
+def gen_check_info():
+    info = checkManager.Check()
     return info
 
 
@@ -105,6 +98,9 @@ async def create_check_callback_handler(client, callback_query):
 # /new_check
 async def new_check(client, message):
     user_id = message.from_user.id
+    user_current_checks = checkManager.check_store.get_checks_by_user(user_id)
+    if len(user_current_checks) >= max_checks_per_user:
+        return await client.send_message(user_id, replies['max_checks'])
     await client.send_message(user_id, replies['start'], parse_mode=ParseMode.MARKDOWN)
 
     user_status = userStatus.gen_status()
@@ -113,8 +109,8 @@ async def new_check(client, message):
     user_status['done'] = False
     userStatus.user_statuses[user_id] = user_status
 
-    check_info = gen_info()
-    ckMgr.temp_checks[user_id] = check_info
+    check_info = gen_check_info()
+    checkManager.temp_checks[user_id] = check_info
 
     await client.send_message(user_id, replies['step_1'])
     return True
@@ -123,20 +119,20 @@ async def new_check(client, message):
 async def step_1_set_name_of_check(client, message):
     user_id = message.from_user.id
 
-    check_info = gen_info()
     check_name = message.text[:check_name_max_len]
 
-    user_checks = ckMgr.checks.get_check_by_user(user_id)
+    user_checks = checkManager.check_store.get_checks_by_user(user_id)
     for check in user_checks:
-        if check['name'] == check_name:
+        if check.name == check_name:
             return await client.send_message(user_id, f'打卡名称 {check_name} 重复，请重新输入。')
-    check_info['name'] = check_name
-    check_id = len(ckMgr.checks.checks) + 1
-    while check_id in ckMgr.checks.checks:
-        check_id += 1
-    check_info['id'] = check_id
-    check_info['user'] = user_id
-    ckMgr.temp_checks[user_id] = check_info
+    checkManager.temp_checks[user_id].name = check_name
+    if checkManager.check_store.checks:
+        last_key = list(checkManager.check_store.checks.keys())[-1]
+        check_id = last_key + 1
+    else:
+        check_id = 1
+    checkManager.temp_checks[user_id].id = check_id
+    checkManager.temp_checks[user_id].user = user_id
 
     await client.send_message(user_id, f'打卡名称：{check_name}')
     userStatus.user_statuses[user_id]['done'] = True
@@ -159,7 +155,7 @@ async def step_2_2_set_verify(client, callback_query):
     callback_data = callback_query.data
     task_name, step, value = callback_data.split('_')
     if value == 'n':
-        ckMgr.temp_checks[user_id]['verify'] = False
+        checkManager.temp_checks[user_id].verify = False
     # default is True
     userStatus.user_statuses[user_id]['done'] = True
     return await client.answer_callback_query(callback_query.id, '验证：{}'.format('是' if value == 'y' else '否'))
@@ -194,14 +190,15 @@ def is_valid_time(text):
 async def step_3_3_set_custom_remind(client, message):
     user_id = message.from_user.id
     text = message.text
+    text = text.replace('：', ':')
 
     if is_valid_time(text):
-        ckMgr.temp_checks[user_id]['remind'] = text
+        checkManager.temp_checks[user_id].remind = text
         userStatus.user_statuses[user_id]['done'] = True
         await client.send_message(user_id, f'提醒时间：{text}')
         return await step_4_1_inform_set_deadline(client, user_id)
     elif text == '无':
-        ckMgr.temp_checks[user_id]['remind'] = None
+        checkManager.temp_checks[user_id].remind = None
         userStatus.user_statuses[user_id]['done'] = True
         await client.send_message(user_id, f'提醒时间：{text}')
         return await step_4_1_inform_set_deadline(client, user_id)
@@ -234,14 +231,15 @@ async def step_4_2_select_deadline(client, callback_query):
 async def step_4_3_set_custom_deadline(client, message):
     user_id = message.from_user.id
     text = message.text
+    text = text.replace('：', ':')
 
     if is_valid_time(text):
-        if ckMgr.temp_checks[user_id]['remind']:
-            remind_time = datetime.strptime(ckMgr.temp_checks[user_id]['remind'], '%H:%M')
+        if checkManager.temp_checks[user_id].remind and text != '00:00':
+            remind_time = datetime.strptime(checkManager.temp_checks[user_id].remind, '%H:%M')
             deadline_time = datetime.strptime(text, '%H:%M')
             if not remind_time < deadline_time:
                 return await client.send_message(user_id, '截止时间应晚于提醒时间')
-        ckMgr.temp_checks[user_id]['deadline'] = text
+        checkManager.temp_checks[user_id].deadline = text
         userStatus.user_statuses[user_id]['done'] = True
         await client.send_message(user_id, f'提醒时间：{text}')
         return await step_5_1_inform_set_enabled(client, user_id)
@@ -281,7 +279,7 @@ async def step_5_2_select_enabled(client, callback_query):
         await client.answer_callback_query(callback_query.id, '请设置打卡日期')
         return await client.send_message(user_id, replies['step_5_m'])
     else:  # value.isdigit():
-        ckMgr.temp_checks[user_id]['enabled'] = value
+        checkManager.temp_checks[user_id].enabled = value
         userStatus.user_statuses[user_id]['done'] = True
         enabled_days = get_enabled_days(value)
         return await client.answer_callback_query(callback_query.id, '打卡日：{}'.format(enabled_days))
@@ -297,7 +295,7 @@ async def step_5_3_set_custom_enabled(client, message):
         elif text.replace('0', '').replace('1', ''):  # digits other than 0 and 1
             return await client.send_message(user_id, '请使用 0 和 1 代表不打卡和打卡')
         else:
-            ckMgr.temp_checks[user_id]['enabled'] = text
+            checkManager.temp_checks[user_id].enabled = text
             userStatus.user_statuses[user_id]['done'] = True
             enabled_days = get_enabled_days(text)
             await client.send_message(user_id, f'打卡日：{enabled_days}')
@@ -341,12 +339,12 @@ async def step_6_3_set_custom_until(client, message):
         today = datetime.today()
         if until_date < today:
             return await client.send_message(user_id, '结束日期必须晚于今天')
-        ckMgr.temp_checks[user_id]['until'] = text
+        checkManager.temp_checks[user_id].until = text
         userStatus.user_statuses[user_id]['done'] = True
         await client.send_message(user_id, f'结束日期：{text}')
         return await step_7_1_inform_confirm(client, user_id)
     elif text == '无':
-        ckMgr.temp_checks[user_id]['until'] = None
+        checkManager.temp_checks[user_id].until = None
         userStatus.user_statuses[user_id]['done'] = True
         await client.send_message(user_id, f'该打卡无结束日期')
         return await step_7_1_inform_confirm(client, user_id)
@@ -358,13 +356,13 @@ async def step_7_1_inform_confirm(client, user_id):
     userStatus.user_statuses[user_id]['step'] = 7
     userStatus.user_statuses[user_id]['done'] = False
 
-    check_info = '打卡信息：\n\n'
-    check_info += f'打卡名称：{ckMgr.temp_checks[user_id]["name"]}\n'
-    check_info += f'需要验证：{"是" if ckMgr.temp_checks[user_id]["verify"] else "否"}\n'
-    check_info += f'提醒时间：{ckMgr.temp_checks[user_id]["remind"]}\n'
-    check_info += f'截止时间：{ckMgr.temp_checks[user_id]["deadline"]}\n'
-    check_info += f'打卡日期：{get_enabled_days(ckMgr.temp_checks[user_id]["enabled"])}\n'
-    check_info += f'结束日期：{ckMgr.temp_checks[user_id]["until"] if ckMgr.temp_checks[user_id]["until"] else "无"}\n'
+    check_info = '打卡信息\n\n'
+    check_info += f'打卡名称：{checkManager.temp_checks[user_id].name}\n'
+    check_info += f'需要验证：{"是" if checkManager.temp_checks[user_id].verify else "否"}\n'
+    check_info += f'提醒时间：{checkManager.temp_checks[user_id].remind}\n'
+    check_info += f'截止时间：{checkManager.temp_checks[user_id].deadline}\n'
+    check_info += f'打卡日期：{get_enabled_days(checkManager.temp_checks[user_id].enabled)}\n'
+    check_info += f'结束日期：{checkManager.temp_checks[user_id].until if checkManager.temp_checks[user_id].until else "无"}\n'
     await client.send_message(user_id, check_info)
 
     reply_markup = InlineKeyboardMarkup([
@@ -375,8 +373,9 @@ async def step_7_1_inform_confirm(client, user_id):
 
 
 def write_check(user_id, check):
-    ckMgr.checks.add_check(check['id'], check)
-    ckMgr.temp_checks.pop(user_id)
+    check.since = datetime.today().strftime('%Y%m%d')
+    checkManager.check_store.add_check(check.id, check)
+    checkManager.temp_checks.pop(user_id)
     userStatus.user_statuses.pop(user_id)
     return True
 
@@ -386,11 +385,15 @@ async def step_7_2_select_confirm(client, callback_query):
     callback_data = callback_query.data
     task_name, step, value = callback_data.split('_')
     if value == '1':
-        write_check(user_id, ckMgr.temp_checks[user_id])
+        write_check(user_id, checkManager.temp_checks[user_id])
         await client.answer_callback_query(callback_query.id, '打卡创建成功')
         return await client.send_message(user_id, '打卡创建成功')
     else:  # value == '0'
-        ckMgr.temp_checks.pop(user_id)
-        userStatus.user_statuses.pop(user_id)
         await client.answer_callback_query(callback_query.id, '打卡创建已取消')
-        return await client.send_message(user_id, '打卡创建已取消')
+        return await cancel_new_check(client, user_id)
+
+
+async def cancel_new_check(client, user_id):
+    checkManager.temp_checks.pop(user_id)
+    userStatus.user_statuses.pop(user_id)
+    return await client.send_message(user_id, '打卡创建已取消')

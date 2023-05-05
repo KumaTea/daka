@@ -20,3 +20,8 @@ dk = Client(
 )
 
 # scheduler = BackgroundScheduler(misfire_grace_time=60, timezone='Asia/Shanghai')
+
+data_dir = 'data'
+check_pickle_file = 'checks.p'
+check_ids_by_user_file = 'check_ids_by_user.p'
+check_status_store_pickle_file = 'check_store.p'
