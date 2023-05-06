@@ -1,3 +1,4 @@
+import info
 import checkManager
 from newCheck import new_check_command, cancel_new_check
 
@@ -23,3 +24,12 @@ async def dm_cancel(client, message):
     user_status = checkManager.user_statuses[user_id]
     if user_status['task'] == 'newCk':
         return await cancel_new_check(client, user_id)
+
+
+async def restart(client, message):
+    if message.from_user.id in info.administrators:
+        await message.reply('Restarting...')
+        import sys
+        return sys.exit(0)
+    else:
+        return None  # 无事发生

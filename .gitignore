@@ -1,4 +1,6 @@
-*.ini
 *.p
 *.db
+*.ini
+.idea
 *.session*
+__pycache__

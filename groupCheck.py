@@ -7,7 +7,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 CALLBACK_TASK = 'CK'
 NO_CHECKS = '您目前暂未添加打卡任务，请私聊我使用 /new_check 命令添加。'
-NO_VERIFY = '请回复您的打卡截图。'
+NO_VERIFY = '您的打卡任务 **{}** 需要回复一条验证消息！请重试。'
 SUCCESS = '任务 **{}** 打卡成功！\n当前连续打卡 {} 天。'
 ALREADY = '您今天已经打卡过 **{}** 了。'
 CHOOSE_CHECK = '请选择您要打卡的任务：'
@@ -17,7 +17,7 @@ NOT_IN_TASK = '不要乱点无关的按钮 😡'
 async def check_and_respond(client, message, check, callback_query=None):
     check_id = check.id
     if check.verify and not message.reply_to_message:
-        return await message.reply_text(NO_VERIFY)
+        return await message.reply_text(NO_VERIFY.format(check.name), parse_mode=ParseMode.MARKDOWN, quote=False)
     result_str, result_bool = checkManager.check_in(check_id)
     if result_bool:  # True
         check_status = checkManager.check_status_store.get_check_status(check_id)

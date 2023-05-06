@@ -4,13 +4,14 @@ from dmMessages import process_dm_msg
 from groupFunctions import group_check
 from processCallback import process_callback
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
-from dmFunctions import dm_start, dm_help, dm_cancel, new_check_command
+from dmFunctions import dm_start, dm_help, dm_cancel, restart, new_check_command
 
 
 def register_handlers():
     dk.add_handler(MessageHandler(dm_start, filters.command(['start']) & filters.private))
     dk.add_handler(MessageHandler(dm_help, filters.command(['help']) & filters.private))
     dk.add_handler(MessageHandler(dm_cancel, filters.command(['cancel']) & filters.private))
+    dk.add_handler(MessageHandler(restart, filters.command(['restart']) & filters.private))
     dk.add_handler(MessageHandler(new_check_command, filters.command(['new_check']) & filters.private))
     dk.add_handler(MessageHandler(process_dm_msg, filters.text & filters.private))
 

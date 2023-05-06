@@ -382,14 +382,14 @@ async def step_7_1_send_btn_confirm(client, user_id):
     checkManager.user_statuses[user_id]['step'] = 7
     checkManager.user_statuses[user_id]['done'] = False
 
-    check_info = '打卡信息\n\n'
+    check_info = '**打卡信息**\n\n'
     check_info += f'打卡名称：{checkManager.temp_checks[user_id].name}\n'
     check_info += f'需要验证：{"是" if checkManager.temp_checks[user_id].verify else "否"}\n'
     check_info += f'提醒时间：{checkManager.temp_checks[user_id].remind}\n'
     check_info += f'截止时间：{checkManager.temp_checks[user_id].deadline}\n'
     check_info += f'打卡日期：{get_enabled_days(checkManager.temp_checks[user_id].enabled)}\n'
     check_info += f'结束日期：{checkManager.temp_checks[user_id].until if checkManager.temp_checks[user_id].until else "无"}\n'
-    await client.send_message(user_id, check_info)
+    await client.send_message(user_id, check_info, parse_mode=ParseMode.MARKDOWN)
 
     reply_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('确认', callback_data='newCk_7_1')],
