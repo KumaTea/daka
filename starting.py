@@ -1,5 +1,6 @@
 import os
-from session import data_dir, logger
+from session import logger
+from settings import data_dir
 
 
 if not os.path.isdir(data_dir):

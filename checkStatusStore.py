@@ -1,9 +1,10 @@
 import os
 import pickle
 import checkMeta
+from session import logger
 from checkMeta import Check
 from datetime import datetime, timedelta
-from session import logger, data_dir, check_status_store_pickle_file
+from settings import data_dir, check_status_store_pickle_file
 
 
 class CheckStatus:

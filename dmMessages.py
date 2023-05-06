@@ -1,8 +1,6 @@
 import checkManager
+from textCollection import DEFAULT_REPLY
 from newCheck import new_check_message_handler
-
-
-DEFAULT_REPLY = '您好，欢迎使用打卡警察！\n使用 /help 查看帮助。'
 
 
 async def process_dm_msg(client, message):

@@ -2,34 +2,11 @@
 
 import asyncio
 import checkManager
+from textCollection import *
 from datetime import datetime
 from checkAuth import dm_user_in_group
 from pyrogram.enums.parse_mode import ParseMode
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
-check_name_max_len = 16
-max_checks_per_user = 10
-
-# replies
-START = '开始创建新的打卡任务！中途退出，请发送 /cancel'
-STEP_1 = '第一步：请输入打卡任务的名称，{}字以内。'.format(check_name_max_len)
-STEP_2 = '第二步：请选择打卡时是否需要回复一条消息 (如打卡截图、学习小结等) 以验证。'
-STEP_3 = '第三步：请选择打卡提醒时间。'
-STEP_3_M = '请输入打卡提醒时间，格式为 HH:MM，如 21:00。\n如果不需要提醒，请发送「无」。'
-STEP_4 = '第四步：请选择打卡截止时间。'
-STEP_4_M = '请输入打卡截止时间，格式为 HH:MM，如 00:00。'
-STEP_5 = '第五步：请选择打卡日期。'
-STEP_5_M = '请输入打卡日期，格式示例 1111100。\n其中 1 代表当天需要打卡，0 代表当天不需要打卡。\n从周一开始，周日为最后一天。'
-STEP_6 = '第六步：请选择结束打卡日期。'
-STEP_6_M = '请输入结束打卡日期，格式为 YYYYMMDD，如 20231231。\n如果不需要结束日期，请发送「无」。'
-STEP_7 = '第七步：请确认打卡任务信息。'
-MALFORMED_TIME = '时间格式错误，请重新输入，格式为HH:MM，如 21:00。'
-MALFORMED_DAYS = '启用日格式错误，请重新输入，格式示例 1111100。'
-MALFORMED_DATE = '日期格式错误，请重新输入，格式为 YYYYMMDD，如 20231231。'
-MAX_CHECKS = '您的打卡已达上限，请使用 /del_check 删除后再创建。'
-ERROR = '程序错误！已重置状态。'
-NOT_IN_TASK = '不要乱点无关的按钮 😡'
-NOT_IN_AUTH_GROUP = '您不是 @DaKaClub 的成员，请先加入！'
 
 
 async def new_check_message_handler(client, message):
@@ -103,12 +80,10 @@ async def new_check_callback_handler(client, callback_query):
 # /new_check
 async def new_check_command(client, message):
     user_id = message.from_user.id
-    if not await dm_user_in_group(client, user_id):
-        return await client.send_message(user_id, NOT_IN_AUTH_GROUP)
     user_current_checks = checkManager.check_store.get_checks_by_user(user_id)
     if len(user_current_checks) >= max_checks_per_user:
         return await client.send_message(user_id, MAX_CHECKS)
-    await client.send_message(user_id, START, parse_mode=ParseMode.MARKDOWN)
+    await client.send_message(user_id, NEW_START, parse_mode=ParseMode.MARKDOWN)
 
     user_status = checkManager.gen_status()
     user_status['task'] = 'newCk'
@@ -119,7 +94,7 @@ async def new_check_command(client, message):
     check_info = checkManager.gen_check_info()
     checkManager.temp_checks[user_id] = check_info
 
-    await client.send_message(user_id, STEP_1)
+    await client.send_message(user_id, NEW_STEP_1)
     return True
 
 
@@ -152,7 +127,7 @@ async def step_2_1_send_btn_verify(client, message):
         [InlineKeyboardButton('是', callback_data='newCk_2_y')],
         [InlineKeyboardButton('否', callback_data='newCk_2_n')],
     ])
-    return await client.send_message(user_id, STEP_2, reply_markup=reply_markup)
+    return await client.send_message(user_id, NEW_STEP_2, reply_markup=reply_markup)
 
 
 async def step_2_2_get_cb_verify(client, callback_query):
@@ -173,7 +148,7 @@ async def step_3_1_send_btn_remind(client, user_id):
         [InlineKeyboardButton('默认 21:00', callback_data='newCk_3_def')],
         [InlineKeyboardButton('自定义', callback_data='newCk_3_cus')],
     ])
-    return await client.send_message(user_id, STEP_3, reply_markup=reply_markup)
+    return await client.send_message(user_id, NEW_STEP_3, reply_markup=reply_markup)
 
 
 async def step_3_2_get_cb_remind(client, callback_query):
@@ -183,7 +158,7 @@ async def step_3_2_get_cb_remind(client, callback_query):
     if value == 'cus':
         async_tasks = [
             client.answer_callback_query(callback_query.id, '请设置提醒时间'),
-            client.send_message(user_id, STEP_3_M)
+            client.send_message(user_id, NEW_STEP_3_M)
         ]
         return await asyncio.gather(*async_tasks)
     else:  # default
@@ -228,7 +203,7 @@ async def step_4_1_send_btn_set_deadline(client, user_id):
         [InlineKeyboardButton('默认 00:00', callback_data='newCk_4_def')],
         [InlineKeyboardButton('自定义', callback_data='newCk_4_cus')],
     ])
-    return await client.send_message(user_id, STEP_4, reply_markup=reply_markup)
+    return await client.send_message(user_id, NEW_STEP_4, reply_markup=reply_markup)
 
 
 async def step_4_2_get_cb_deadline(client, callback_query):
@@ -238,7 +213,7 @@ async def step_4_2_get_cb_deadline(client, callback_query):
     if value == 'cus':
         async_tasks = [
             client.answer_callback_query(callback_query.id, '请设置截止时间'),
-            client.send_message(user_id, STEP_4_M)
+            client.send_message(user_id, NEW_STEP_4_M)
         ]
         return await asyncio.gather(*async_tasks)
     else:  # default
@@ -258,7 +233,7 @@ async def step_4_3_get_msg_deadline_custom(client, message):
             if remind_time == deadline_time:
                 return await client.send_message(user_id, '提醒时间和截止时间不能相同！请重新设置')
             elif remind_time > deadline_time:
-                    await client.send_message(user_id, '截止时间为第二天！如果不是你想要的，请使用 /cancel 取消。')
+                await client.send_message(user_id, '截止时间为第二天！如果不是你想要的，请使用 /cancel 取消。')
         checkManager.temp_checks[user_id].deadline = text
         checkManager.user_statuses[user_id]['done'] = True
         await client.send_message(user_id, f'提醒时间：{text}')
@@ -278,7 +253,7 @@ async def step_5_1_send_btn_set_enabled(client, user_id):
         [InlineKeyboardButton('每天', callback_data='newCk_5_1111111')],
         [InlineKeyboardButton('自定义', callback_data='newCk_5_cus')],
     ])
-    return await client.send_message(user_id, STEP_5, reply_markup=reply_markup)
+    return await client.send_message(user_id, NEW_STEP_5, reply_markup=reply_markup)
 
 
 def get_enabled_days(days: str):
@@ -298,7 +273,7 @@ async def step_5_2_get_cb_enabled(client, callback_query):
     if value == 'cus':
         async_tasks = [
             client.answer_callback_query(callback_query.id, '请设置打卡日期'),
-            client.send_message(user_id, STEP_5_M)
+            client.send_message(user_id, NEW_STEP_5_M)
         ]
         return await asyncio.gather(*async_tasks)
     else:  # value.isdigit():
@@ -334,7 +309,7 @@ async def step_6_1_send_btn_until(client, user_id):
         [InlineKeyboardButton('无结束日期', callback_data='newCk_6_inf')],
         [InlineKeyboardButton('自定义', callback_data='newCk_6_cus')],
     ])
-    return await client.send_message(user_id, STEP_6, reply_markup=reply_markup)
+    return await client.send_message(user_id, NEW_STEP_6, reply_markup=reply_markup)
 
 
 async def step_6_2_get_cb_until(client, callback_query):
@@ -344,7 +319,7 @@ async def step_6_2_get_cb_until(client, callback_query):
     if value == 'cus':
         async_tasks = [
             client.answer_callback_query(callback_query.id, '请设置结束日期'),
-            client.send_message(user_id, STEP_6_M)
+            client.send_message(user_id, NEW_STEP_6_M)
         ]
         return await asyncio.gather(*async_tasks)
     else:  # default
@@ -388,14 +363,14 @@ async def step_7_1_send_btn_confirm(client, user_id):
     check_info += f'提醒时间：{checkManager.temp_checks[user_id].remind}\n'
     check_info += f'截止时间：{checkManager.temp_checks[user_id].deadline}\n'
     check_info += f'打卡日期：{get_enabled_days(checkManager.temp_checks[user_id].enabled)}\n'
-    check_info += f'结束日期：{checkManager.temp_checks[user_id].until if checkManager.temp_checks[user_id].until else "无"}\n'
+    check_info += f'结束日期：{checkManager.temp_checks[user_id].until or "无"}\n'
     await client.send_message(user_id, check_info, parse_mode=ParseMode.MARKDOWN)
 
     reply_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('确认', callback_data='newCk_7_1')],
         [InlineKeyboardButton('取消', callback_data='newCk_7_0')],
     ])
-    return await client.send_message(user_id, STEP_7, reply_markup=reply_markup)
+    return await client.send_message(user_id, NEW_STEP_7, reply_markup=reply_markup)
 
 
 def write_check(user_id, check):

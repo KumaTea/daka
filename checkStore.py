@@ -1,7 +1,8 @@
 import os
 import pickle
+from session import logger
 from checkMeta import Check
-from session import logger, data_dir, check_pickle_file, check_ids_by_user_file
+from settings import data_dir, check_pickle_file, check_ids_by_user_file
 
 
 class CheckStore:

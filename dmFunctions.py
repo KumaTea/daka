@@ -1,35 +1,43 @@
-import info
+import settings
 import checkManager
+from session import logger
+from textCollection import *
+from checkAuth import check_dm_auth_decorator
 from newCheck import new_check_command, cancel_new_check
 
 
-START = '您好，欢迎使用打卡警察！\n使用 /help 查看帮助。'
-HELP = '目前上线功能：\n' \
-       '/new_check - 新建打卡\n' \
-       '您需要是 @DaKaClub 的成员才能使用本 bot.'
-
-
 async def dm_start(client, message):
-    return await message.reply_text(START)
+    return await message.reply_text(DM_START)
 
 
 async def dm_help(client, message):
-    return await message.reply_text(HELP)
+    return await message.reply_text(DM_HELP)
 
 
 async def dm_cancel(client, message):
     user_id = message.from_user.id
     if user_id not in checkManager.user_statuses:
-        return await message.reply_text('您目前没有正在进行的操作。')
+        return await message.reply_text(NO_OPERATION)
     user_status = checkManager.user_statuses[user_id]
     if user_status['task'] == 'newCk':
         return await cancel_new_check(client, user_id)
 
 
-async def restart(client, message):
-    if message.from_user.id in info.administrators:
+@check_dm_auth_decorator
+async def dm_new_check(client, message):
+    return await new_check_command(client, message)
+
+
+async def dm_unavailable(client, message):
+    return await message.reply_text(CMD_NOT_AVAILABLE)
+
+
+async def admin_restart(client, message):
+    user = message.from_user
+    if user.id in settings.administrators:
         await message.reply('Restarting...')
+        logger.info('Restart requested by: {} {} ({})'.format(user.first_name, user.last_name or "", user.id))
         import sys
         return sys.exit(0)
     else:
-        return None  # 无事发生
+        return None

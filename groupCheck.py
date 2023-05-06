@@ -1,17 +1,12 @@
-import info
+import settings
 import asyncio
 import checkManager
+from textCollection import *
 from pyrogram.enums.parse_mode import ParseMode
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 CALLBACK_TASK = 'CK'
-NO_CHECKS = '您目前暂未添加打卡任务，请私聊我使用 /new_check 命令添加。'
-NO_VERIFY = '您的打卡任务 **{}** 需要回复一条验证消息！请重试。'
-SUCCESS = '任务 **{}** 打卡成功！\n当前连续打卡 {} 天。'
-ALREADY = '您今天已经打卡过 **{}** 了。'
-CHOOSE_CHECK = '请选择您要打卡的任务：'
-NOT_IN_TASK = '不要乱点无关的按钮 😡'
 
 
 async def check_and_respond(client, message, check, callback_query=None):
@@ -23,7 +18,11 @@ async def check_and_respond(client, message, check, callback_query=None):
         check_status = checkManager.check_status_store.get_check_status(check_id)
         check_name = check.name
         streak = check_status.streak
-        success_message = SUCCESS.format(check_name, streak)
+        success_message = SUCCESS.format(check_name) + '\n'
+        if streak == 1:
+            success_message += FIRST_TIME
+        else:
+            success_message += STREAK.format(streak)
         if callback_query:
             await callback_query.message.edit_text(success_message, parse_mode=ParseMode.MARKDOWN)
         else:
@@ -61,7 +60,7 @@ async def check_command(client, message):
         checkManager.user_statuses[user_id] = user_status
 
         keyboard = []
-        group_index = info.auth_groups.index(chat_id)
+        group_index = settings.auth_groups.index(chat_id)
         for check in user_checks:
             check_name = check.name
             callback_data = f'{CALLBACK_TASK}_{check.id}_{group_index}_{message_id}'
