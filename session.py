@@ -8,6 +8,9 @@ logging.basicConfig(
     level=logging.INFO,
     datefmt='%m/%d %H:%M:%S')
 logger = logging.getLogger(__name__)
+for name, l in logging.root.manager.loggerDict.items():
+    if name.startswith('pyrogram') and isinstance(l, logging.Logger):
+        l.setLevel(logging.WARNING)
 
 config = configparser.ConfigParser()
 config.read('config.ini')

@@ -1,16 +1,16 @@
 import os
-from session import *
+from session import data_dir, logger
 
 
 if not os.path.isdir(data_dir):
     os.mkdir(data_dir)
 
 
+from checkAuth import init_auth_users
 from register import register_handlers
 
 
 def starting():
-    if not os.path.isdir(data_dir):
-        os.mkdir(data_dir)
+    init_auth_users()
     register_handlers()
-    return logger.info("[TGBot] Initialized.")
+    logger.info("[DKJCbot] Initialized.")
