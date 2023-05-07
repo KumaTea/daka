@@ -25,7 +25,6 @@ def register_handlers():
 
     return logger.info('Registered handlers')
 
-
 # def manager():
 #     scheduler = session.scheduler
 #     scheduler.add_job(func, 'cron', [arg1], hour=4)

@@ -5,7 +5,6 @@ from session import logger
 from checkMeta import Check
 from datetime import datetime
 
-
 check_store = checkStore.CheckStore()
 logger.info(f'checks count: {len(check_store.checks)}')
 check_status_store = checkStatusStore.CheckStatusStore()

@@ -1,6 +1,5 @@
 from settings import *
 
-
 NEW_START = '开始创建新的打卡任务！中途退出，请发送 /cancel'
 NEW_STEP_1 = '第一步：请输入打卡任务的名称，{}字以内。'.format(check_name_max_len)
 NEW_STEP_2 = '第二步：请选择打卡时是否需要回复一条消息 (如打卡截图、学习小结等) 以验证。'
@@ -32,6 +31,6 @@ CHOOSE_CHECK = '请选择您要打卡的任务：'
 CMD_NOT_AVAILABLE = '这个命令还没有开发哦！'
 DM_START = '您好，欢迎使用打卡警察！\n使用 /help 查看帮助。'
 DM_HELP = '目前上线功能：\n' \
-       '/new_check - 新建打卡\n' \
-       '您需要是 @DaKaClub 的成员才能使用本 bot.'
+          '/new_check - 新建打卡\n' \
+          '您需要是 @DaKaClub 的成员才能使用本 bot.'
 NO_OPERATION = '您目前没有正在进行的操作。'

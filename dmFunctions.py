@@ -37,6 +37,8 @@ async def admin_restart(client, message):
     if user.id in settings.administrators:
         await message.reply('Restarting...')
         logger.info('Restart requested by: {} {} ({})'.format(user.first_name, user.last_name or "", user.id))
+        checkManager.check_store.write_to_pickle()
+        checkManager.check_status_store.write_to_pickle()
         import sys
         return sys.exit(0)
     else:

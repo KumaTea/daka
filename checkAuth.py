@@ -33,6 +33,7 @@ def check_group_auth_decorator(func):
             return await client.leave_chat(message.chat.id)
         else:
             return await func(client, message)
+
     return wrapper
 
 
@@ -43,4 +44,5 @@ def check_dm_auth_decorator(func):
             return await func(client, message)
         else:
             return await message.reply_text(USER_NOT_IN_AUTH_GROUP)
+
     return wrapper

@@ -2,7 +2,6 @@ import logging
 import configparser
 from pyrogram import Client
 
-
 logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,

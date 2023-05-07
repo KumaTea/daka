@@ -5,7 +5,6 @@ from textCollection import *
 from pyrogram.enums.parse_mode import ParseMode
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-
 CALLBACK_TASK = 'CK'
 
 
@@ -78,6 +77,8 @@ async def step_2_2_get_cb_check(client, callback_query):
     check_id, group_index, message_id = map(int, callback_data.split('_')[1:])
     message = checkManager.temp_messages[group_index][message_id]
     check = checkManager.check_store.get_check(check_id)
+    if user_id != check.user:
+        return await client.answer_callback_query(callback_query.id, NOT_IN_TASK)
     checkManager.user_statuses.pop(user_id)
     checkManager.temp_messages[group_index].pop(message_id)
     return await check_and_respond(client, message, check, callback_query)
