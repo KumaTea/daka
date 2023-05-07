@@ -5,6 +5,7 @@ import checkManager
 from textCollection import *
 from datetime import datetime
 from session import dk, logger
+from pyrogram.enums import ParseMode
 from tgTools import get_user_mention_text
 
 
@@ -75,7 +76,7 @@ async def send_notification():
             check = checkManager.check_store.get_check(check_id)
             user_mention = await get_user_mention_text(dk, user=users[check.user])
             message = REMINDER.format(check.name, check.remind, user_mention)
-            async_tasks.append(dk.send_message(settings.auth_groups[0], message))
+            async_tasks.append(dk.send_message(settings.auth_groups[0], message, parse_mode=ParseMode.MARKDOWN))
     await asyncio.gather(*async_tasks)
 
     async_tasks = []
@@ -87,7 +88,7 @@ async def send_notification():
             skipped_count = check_status.skipped
             user_mention = await get_user_mention_text(dk, user=users[check.user])
             message = DEADLINE.format(check.name, skipped_count, user_mention)
-            async_tasks.append(dk.send_message(settings.auth_groups[0], message))
+            async_tasks.append(dk.send_message(settings.auth_groups[0], message, parse_mode=ParseMode.MARKDOWN))
     await asyncio.gather(*async_tasks)
 
     return True

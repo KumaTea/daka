@@ -3,6 +3,7 @@ import checkManager
 from textCollection import *
 from session import dk, logger
 from pyrogram.enums import ChatMemberStatus
+from pyrogram.errors import UserNotParticipant
 
 
 def init_auth_users():
@@ -20,8 +21,8 @@ async def dm_user_in_group(client, user_id, chat_id=settings.auth_groups[0]):
         member = await client.get_chat_member(chat_id, user_id)
         status = member.status
         return status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]
-    except Exception as e:
-        logger.error(f'[auth]\terror in user_in_group: {e}')
+    except UserNotParticipant:
+        logger.error(f'[auth]\tan user ({user_id}) was rejected in dm')
         return False
 
 
@@ -29,6 +30,7 @@ def check_group_auth_decorator(func):
     async def wrapper(client, message):
         chat_id = message.chat.id
         if chat_id not in settings.auth_groups:
+            logger.error(f'[auth]\tgroup ({chat_id}) not in auth list. Leaving...')
             await message.reply_text(GROUP_NOT_IN_AUTH_LIST)
             return await client.leave_chat(message.chat.id)
         else:
