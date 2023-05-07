@@ -1,4 +1,3 @@
-import settings
 import asyncio
 import checkManager
 from textCollection import *
@@ -39,7 +38,6 @@ async def check_and_respond(client, message, check, callback_query=None):
 # /check
 async def check_command(client, message):
     chat_id = message.chat.id
-    message_id = message.id
     user_id = message.from_user.id
     user_checks = checkManager.check_store.get_checks_by_user(user_id)
     if not user_checks:
@@ -49,10 +47,9 @@ async def check_command(client, message):
         return await check_and_respond(client, message, user_checks[0])
     else:
         # more than two checks, return inline keyboard buttons
-        checkManager.set_status(user_id, CALLBACK_TASK, 1, False)
+        checkManager.set_user_status(user_id, CALLBACK_TASK, 1, False)
         reply_markup = gen_checks_buttons(user_checks, CALLBACK_TASK)
-        group_index = settings.auth_groups.index(chat_id)
-        checkManager.set_status(user_id, message=message)
+        checkManager.set_user_status(user_id, message=message)
         return await message.reply_text(CHOOSE_CHECK, reply_markup=reply_markup)
 
 

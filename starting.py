@@ -6,10 +6,11 @@ if not os.path.isdir(data_dir):
     os.mkdir(data_dir)
 
 from checkAuth import init_auth_users
-from register import register_handlers
+from register import register_handlers, cron_schedule
 
 
 def starting():
     init_auth_users()
     register_handlers()
-    logger.info("[DKJCbot] Initialized.")
+    cron_schedule()
+    logger.info("[Bot]\tInitialized.")

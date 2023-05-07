@@ -10,7 +10,7 @@ def init_auth_users():
     with dk:
         for member in dk.get_chat_members(group_id):
             checkManager.auth_members.append(member.user.id)
-    return logger.info(f'auth members count: {len(checkManager.auth_members)}')
+    return logger.info(f'[auth]\tauth members count: {len(checkManager.auth_members)}')
 
 
 async def dm_user_in_group(client, user_id, chat_id=settings.auth_groups[0]):
@@ -21,7 +21,7 @@ async def dm_user_in_group(client, user_id, chat_id=settings.auth_groups[0]):
         status = member.status
         return status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]
     except Exception as e:
-        logger.error(f'error in user_in_group: {e}')
+        logger.error(f'[auth]\terror in user_in_group: {e}')
         return False
 
 

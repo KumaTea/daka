@@ -1,5 +1,6 @@
 import checkMeta
 import checkStore
+import checkTimer
 import checkStatusStore
 from session import logger
 from checkMeta import Check
@@ -7,9 +8,13 @@ from datetime import datetime
 
 
 check_store = checkStore.CheckStore()
-logger.info(f'checks count: {len(check_store.checks)}')
+logger.info(f'[ckMgr]\tchecks count: {len(check_store.checks)}')
 check_status_store = checkStatusStore.CheckStatusStore()
-logger.info(f'check statuses count: {len(check_status_store.check_statuses)}')
+check_status_store.init(check_store.checks)
+logger.info(f'[ckMgr]\tcheck statuses count: {len(check_status_store.check_statuses)}')
+check_timer = checkTimer.CheckTimer()
+check_timer.init(check_store.checks)
+logger.info(f'[ckMgr]\tcheck timer: reminders: {len(check_timer.reminders)}, deadlines: {len(check_timer.deadlines)}')
 user_statuses = {}
 auth_members = []
 
@@ -19,7 +24,7 @@ def gen_check_info():
     return info
 
 
-def gen_status():
+def gen_user_status():
     status = {
         'task': '',
         'step': 0,
@@ -30,9 +35,9 @@ def gen_status():
     return status
 
 
-def set_status(user_id: int, task=None, step=None, done=None, check=None, message=None):
+def set_user_status(user_id: int, task=None, step=None, done=None, check=None, message=None):
     if user_id not in user_statuses:
-        user_statuses[user_id] = gen_status()
+        user_statuses[user_id] = gen_user_status()
     status = user_statuses[user_id]
     if not any([task, step, done, check, message]):
         return None
@@ -48,21 +53,24 @@ def add_new_check(check: Check):
     check_store.write_to_pickle()
     check_status_store.add_check(check)
     check_status_store.write_to_pickle()
-    return logger.info(f'new check (id={check_id}) added by user {user_id}')
+    check_timer.add_check(check)
+    return logger.info(f'[ckMgr]\tnew check (id={check_id}) added by user {user_id}')
 
 
 def del_check(check_id: int):
+    check = check_store.get_check(check_id)
+    check_timer.del_check(check)
     check_store.del_check(check_id)
     check_store.write_to_pickle()
     check_status_store.del_check(check_id)
     check_status_store.write_to_pickle()
-    return logger.info(f'check (id={check_id}) deleted')
+    return logger.info(f'[ckMgr]\tcheck (id={check_id}) deleted')
 
 
 def check_in(check_id: int):
     check = check_store.get_check(check_id)
     if not check:
-        logger.error(f'check_id {check_id} not exists')
+        logger.error(f'[ckMgr]\tcheck_id {check_id} not exists')
         return 'check_id not exists', None
 
     check_status = check_status_store.get_check_status(check_id)
@@ -70,16 +78,16 @@ def check_in(check_id: int):
     if check_history:
         last_check = check_history[-1]  # datetime
         deadline_str = check.deadline
-        next_deadline_of_last_check = checkMeta.next_deadline(deadline_str, last_check)
-        if datetime.now() < next_deadline_of_last_check:
-            logger.error(f'check_id {check_id} already checked in today')
+        deadline_of_last_check = checkMeta.next_deadline(deadline_str, last_check)
+        if datetime.now() < deadline_of_last_check:
+            logger.error(f'[ckMgr]\tcheck_id {check_id} already checked in today')
             return 'already checked in today', False
 
     # else:
     #     check_history.append(datetime.now())
 
     check_status_store.check_in(check_id)
-    check_status_store.set_check_stats(check_id, check)
+    check_status_store.set_check_stats(check)
     check_status_store.write_to_pickle()
     return 'check in success', True
 

@@ -2,7 +2,6 @@ import os
 
 if os.name == 'posix':
     import uvloop
-
     uvloop.install()
 
 from session import dk

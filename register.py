@@ -1,8 +1,9 @@
 from dmFunctions import *
 from groupFunctions import *
 from pyrogram import filters
-from session import dk, logger
 from dmMessages import process_dm_msg
+from groupTimer import send_notification
+from session import dk, logger, scheduler
 from processCallback import process_callback
 from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
@@ -24,9 +25,10 @@ def register_handlers():
 
     dk.add_handler(CallbackQueryHandler(process_callback))
 
-    return logger.info('Registered handlers')
+    return logger.info('[Init]\tRegistered handlers')
 
-# def manager():
-#     scheduler = session.scheduler
-#     scheduler.add_job(func, 'cron', [arg1], hour=4)
-#     return logging.info('Scheduler started')
+
+def cron_schedule():
+    scheduler.add_job(send_notification, 'cron', minute='*')
+    scheduler.start()
+    return logger.info('[Init]\tAPScheduler started')

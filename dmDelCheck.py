@@ -10,13 +10,12 @@ task_name = 'delCk'
 # /del_check
 async def del_check_command(client, message):
     chat_id = message.chat.id
-    message_id = message.id
     user_id = message.from_user.id
     user_checks = checkManager.check_store.get_checks_by_user(user_id)
     if not user_checks:
         return await client.send_message(chat_id, DEL_NO_CHECKS)
 
-    checkManager.set_status(user_id, task_name, 1, False)
+    checkManager.set_user_status(user_id, task_name, 1, False)
     reply_markup = gen_checks_buttons(user_checks, task_name)
 
     await client.send_message(chat_id, DEL_START, reply_markup=reply_markup)
@@ -27,14 +26,14 @@ async def step_2_get_cb_del_check(client, callback_query):
     callback_data = callback_query.data
     chat_id = callback_query.message.chat.id
     user_id = callback_query.from_user.id
-    checkManager.set_status(user_id, step=step)
+    checkManager.set_user_status(user_id, step=step)
     _, _, check_id = callback_data.split('_')
     check_id = int(check_id)
     check = checkManager.check_store.get_check(check_id)
     check_info = checkManager.print_check_info(check)
     await client.send_message(chat_id, check_info)
 
-    checkManager.set_status(user_id, check=check, message=callback_query.message)
+    checkManager.set_user_status(user_id, check=check, message=callback_query.message)
     reply_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('是', callback_data=f'{task_name}_{step}_y'),
          InlineKeyboardButton('否', callback_data=f'{task_name}_{step}_n')]
@@ -45,7 +44,7 @@ async def step_2_get_cb_del_check(client, callback_query):
 async def step_3_get_cb_del_check_confirm(client, callback_query):
     callback_data = callback_query.data
     user_id = callback_query.from_user.id
-    checkManager.set_status(user_id, step=3)
+    checkManager.set_user_status(user_id, step=3)
     check = checkManager.user_statuses[user_id]['check']
     check_name = check.name
     _, _, answer = callback_data.split('_')
@@ -58,10 +57,7 @@ async def step_3_get_cb_del_check_confirm(client, callback_query):
 
 
 def commit_del_check(check):
-    checkManager.check_store.del_check(check.id)
-    checkManager.check_store.write_to_pickle()
-    checkManager.check_status_store.del_check(check.id)
-    checkManager.check_store.write_to_pickle()
+    checkManager.del_check(check.id)
 
 
 async def cancel_del_check(client, user_id):

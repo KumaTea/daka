@@ -17,10 +17,10 @@ class CheckStore:
                 self.checks = pickle.load(f)
             with open(os.path.join(data_dir, check_ids_by_user_file), 'rb') as f:
                 self.check_ids_by_user = pickle.load(f)
-            return logger.info('checks loaded from pickle')
+            return logger.info('[ckStr]\tchecks loaded from pickle')
         else:
             self.write_to_pickle()
-            return logger.info('checks pickle created')
+            return logger.info('[ckStr]\tchecks pickle created')
 
     def write_to_pickle(self):
         with open(os.path.join(data_dir, check_pickle_file), 'wb') as f:
@@ -40,12 +40,12 @@ class CheckStore:
 
     def edit_check(self, check_id: int, check_info: Check):
         if check_id not in self.checks:
-            raise IndexError('check_id not exists')
+            raise IndexError('[ckStr]\tcheck_id not exists')
         self.checks[check_id] = check_info
 
     def del_check(self, check_id: int):
         if check_id not in self.checks:
-            return logger.warning('check_id not exists')
+            return logger.warning('[ckStr]\tcheck_id not exists')
         user_id = self.checks[check_id].user
         self.check_ids_by_user[user_id].remove(check_id)
         if not self.check_ids_by_user[user_id]:

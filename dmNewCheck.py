@@ -16,10 +16,10 @@ async def new_check_command(client, message):
         return await client.send_message(user_id, MAX_CHECKS)
     await client.send_message(user_id, NEW_START)
 
-    checkManager.set_status(user_id, task_name, 1, False)
+    checkManager.set_user_status(user_id, task_name, 1, False)
 
     check_info = checkManager.gen_check_info()
-    checkManager.set_status(user_id, check=check_info)
+    checkManager.set_user_status(user_id, check=check_info)
 
     await client.send_message(user_id, NEW_STEP_1)
     return True
@@ -42,13 +42,13 @@ async def step_1_get_msg_name(client, message):
     checkManager.user_statuses[user_id]['check'].user = user_id
 
     await client.send_message(user_id, f'打卡名称：{check_name}')
-    checkManager.set_status(user_id, done=True)
+    checkManager.set_user_status(user_id, done=True)
     return await step_2_1_send_btn_verify(client, message)
 
 
 async def step_2_1_send_btn_verify(client, message):
     user_id = message.from_user.id
-    checkManager.set_status(user_id, step=2, done=False)
+    checkManager.set_user_status(user_id, step=2, done=False)
     reply_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('是', callback_data='newCk_2_y'),
          InlineKeyboardButton('否', callback_data='newCk_2_n')],
@@ -63,12 +63,12 @@ async def step_2_2_get_cb_verify(client, callback_query):
     if value == 'n':
         checkManager.user_statuses[user_id]['check'].verify = False
     # default is True
-    checkManager.set_status(user_id, done=True)
+    checkManager.set_user_status(user_id, done=True)
     return await client.answer_callback_query(callback_query.id, '验证：{}'.format('是' if value == 'y' else '否'))
 
 
 async def step_3_1_send_btn_remind(client, user_id):
-    checkManager.set_status(user_id, step=3, done=False)
+    checkManager.set_user_status(user_id, step=3, done=False)
     reply_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('默认 21:00', callback_data='newCk_3_def')],
         [InlineKeyboardButton('自定义', callback_data='newCk_3_cus')],
@@ -87,7 +87,7 @@ async def step_3_2_get_cb_remind(client, callback_query):
         ]
         return await asyncio.gather(*async_tasks)
     else:  # default
-        checkManager.set_status(user_id, done=True)
+        checkManager.set_user_status(user_id, done=True)
         return await client.answer_callback_query(callback_query.id, '提醒时间设为默认')
 
 
@@ -109,12 +109,12 @@ async def step_3_3_get_msg_remind_custom(client, message):
 
     if is_valid_time(text):
         checkManager.user_statuses[user_id]['check'].remind = text
-        checkManager.set_status(user_id, done=True)
+        checkManager.set_user_status(user_id, done=True)
         await client.send_message(user_id, f'提醒时间：{text}')
         return await step_4_1_send_btn_set_deadline(client, user_id)
     elif text == '无':
         checkManager.user_statuses[user_id]['check'].remind = None
-        checkManager.set_status(user_id, done=True)
+        checkManager.set_user_status(user_id, done=True)
         await client.send_message(user_id, f'提醒时间：{text}')
         return await step_4_1_send_btn_set_deadline(client, user_id)
     else:
@@ -122,7 +122,7 @@ async def step_3_3_get_msg_remind_custom(client, message):
 
 
 async def step_4_1_send_btn_set_deadline(client, user_id):
-    checkManager.set_status(user_id, step=4, done=False)
+    checkManager.set_user_status(user_id, step=4, done=False)
     reply_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('默认 00:00', callback_data='newCk_4_def')],
         [InlineKeyboardButton('自定义', callback_data='newCk_4_cus')],
@@ -141,7 +141,7 @@ async def step_4_2_get_cb_deadline(client, callback_query):
         ]
         return await asyncio.gather(*async_tasks)
     else:  # default
-        checkManager.set_status(user_id, done=True)
+        checkManager.set_user_status(user_id, done=True)
         return await client.answer_callback_query(callback_query.id, '截止时间设为默认')
 
 
@@ -159,7 +159,7 @@ async def step_4_3_get_msg_deadline_custom(client, message):
             elif remind_time > deadline_time:
                 await client.send_message(user_id, '截止时间为第二天！如果不是你想要的，请使用 /cancel 取消。')
         checkManager.user_statuses[user_id]['check'].deadline = text
-        checkManager.set_status(user_id, done=True)
+        checkManager.set_user_status(user_id, done=True)
         await client.send_message(user_id, f'提醒时间：{text}')
         return await step_5_1_send_btn_set_enabled(client, user_id)
     elif text == '无':
@@ -169,7 +169,7 @@ async def step_4_3_get_msg_deadline_custom(client, message):
 
 
 async def step_5_1_send_btn_set_enabled(client, user_id):
-    checkManager.set_status(user_id, step=5, done=False)
+    checkManager.set_user_status(user_id, step=5, done=False)
     reply_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('工作日', callback_data='newCk_5_1111100'),
          InlineKeyboardButton('周末', callback_data='newCk_5_0000011')],
@@ -191,7 +191,7 @@ async def step_5_2_get_cb_enabled(client, callback_query):
         return await asyncio.gather(*async_tasks)
     else:  # value.isdigit():
         checkManager.user_statuses[user_id]['check'].enabled = value
-        checkManager.set_status(user_id, done=True)
+        checkManager.set_user_status(user_id, done=True)
         enabled_days = checkManager.get_enabled_days(value)
         return await client.answer_callback_query(callback_query.id, '打卡日：{}'.format(enabled_days))
 
@@ -207,7 +207,7 @@ async def step_5_3_get_msg_enabled_custom(client, message):
             return await client.send_message(user_id, '请使用 0 和 1 代表不打卡和打卡')
         else:
             checkManager.user_statuses[user_id]['check'].enabled = text
-            checkManager.set_status(user_id, done=True)
+            checkManager.set_user_status(user_id, done=True)
             enabled_days = checkManager.get_enabled_days(text)
             await client.send_message(user_id, f'打卡日：{enabled_days}')
             return await step_6_1_send_btn_until(client, user_id)
@@ -216,7 +216,7 @@ async def step_5_3_get_msg_enabled_custom(client, message):
 
 
 async def step_6_1_send_btn_until(client, user_id):
-    checkManager.set_status(user_id, step=6, done=False)
+    checkManager.set_user_status(user_id, step=6, done=False)
     reply_markup = InlineKeyboardMarkup([
         [InlineKeyboardButton('无结束日期', callback_data='newCk_6_inf')],
         [InlineKeyboardButton('自定义', callback_data='newCk_6_cus')],
@@ -235,7 +235,7 @@ async def step_6_2_get_cb_until(client, callback_query):
         ]
         return await asyncio.gather(*async_tasks)
     else:  # default
-        checkManager.set_status(user_id, done=True)
+        checkManager.set_user_status(user_id, done=True)
         return await client.answer_callback_query(callback_query.id, '该打卡无结束日期')
 
 
@@ -253,12 +253,12 @@ async def step_6_3_get_msg_until_custom(client, message):
         if until_date < today:
             return await client.send_message(user_id, '结束日期必须晚于今天')
         checkManager.user_statuses[user_id]['check'].until = text
-        checkManager.set_status(user_id, done=True)
+        checkManager.set_user_status(user_id, done=True)
         await client.send_message(user_id, f'结束日期：{text}')
         return await step_7_1_send_btn_confirm(client, user_id)
     elif text == '无':
         checkManager.user_statuses[user_id]['check'].until = None
-        checkManager.set_status(user_id, done=True)
+        checkManager.set_user_status(user_id, done=True)
         await client.send_message(user_id, f'该打卡无结束日期')
         return await step_7_1_send_btn_confirm(client, user_id)
     else:
@@ -266,7 +266,7 @@ async def step_6_3_get_msg_until_custom(client, message):
 
 
 async def step_7_1_send_btn_confirm(client, user_id):
-    checkManager.set_status(user_id, step=7, done=False)
+    checkManager.set_user_status(user_id, step=7, done=False)
     check_info = checkManager.print_check_info(checkManager.user_statuses[user_id]['check'])
     await client.send_message(user_id, check_info, parse_mode=ParseMode.MARKDOWN)
 
@@ -314,22 +314,22 @@ async def new_check_message_handler(client, message):
     if user_status['step'] == 1:
         return await step_1_get_msg_name(client, message)
     elif user_status['step'] == 3:
-        if checkManager.user_statuses[user_id]['done']:
+        if user_status['done']:
             return await step_4_1_send_btn_set_deadline(client, user_id)
         else:
             return await step_3_3_get_msg_remind_custom(client, message)
     elif user_status['step'] == 4:
-        if checkManager.user_statuses[user_id]['done']:
+        if user_status['done']:
             return await step_5_1_send_btn_set_enabled(client, user_id)
         else:
             return await step_4_3_get_msg_deadline_custom(client, message)
     elif user_status['step'] == 5:
-        if checkManager.user_statuses[user_id]['done']:
+        if user_status['done']:
             return await step_6_1_send_btn_until(client, user_id)
         else:
             return await step_5_3_get_msg_enabled_custom(client, message)
     elif user_status['step'] == 6:
-        if checkManager.user_statuses[user_id]['done']:
+        if user_status['done']:
             return await step_7_1_send_btn_confirm(client, user_id)
         else:
             return await step_6_3_get_msg_until_custom(client, message)
@@ -342,7 +342,8 @@ async def new_check_callback_handler(client, callback_query):
     step = int(step)
     if user_id not in checkManager.user_statuses:
         return await client.answer_callback_query(callback_query.id, NOT_IN_TASK)
-    if step != checkManager.user_statuses[user_id]['step']:
+    user_status = checkManager.user_statuses[user_id]
+    if step != user_status['step']:
         async_tasks = [
             client.send_message(user_id, ERROR),
             cancel_new_check(client, user_id),
@@ -354,19 +355,19 @@ async def new_check_callback_handler(client, callback_query):
         return await step_3_1_send_btn_remind(client, user_id)
     elif step == 3:
         await step_3_2_get_cb_remind(client, callback_query)
-        if checkManager.user_statuses[user_id]['done']:
+        if user_status['done']:
             return await step_4_1_send_btn_set_deadline(client, user_id)
     elif step == 4:
         await step_4_2_get_cb_deadline(client, callback_query)
-        if checkManager.user_statuses[user_id]['done']:
+        if user_status['done']:
             return await step_5_1_send_btn_set_enabled(client, user_id)
     elif step == 5:
         await step_5_2_get_cb_enabled(client, callback_query)
-        if checkManager.user_statuses[user_id]['done']:
+        if user_status['done']:
             return await step_6_1_send_btn_until(client, user_id)
     elif step == 6:
         await step_6_2_get_cb_until(client, callback_query)
-        if checkManager.user_statuses[user_id]['done']:
+        if user_status['done']:
             return await step_7_1_send_btn_confirm(client, user_id)
     elif step == 7:
         return await step_7_2_get_cb_confirm(client, callback_query)

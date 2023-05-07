@@ -46,3 +46,19 @@ def gen_checks_buttons(checks, task_name, step=1):
         keyboard.append(row)
     reply_markup = InlineKeyboardMarkup(keyboard)
     return reply_markup
+
+
+async def get_user_mention_text(client, user_id=None, user=None):
+    if not user:
+        user = await client.get_users(user_id)
+    if user.username:
+        mention_text = f'@{user.username}'
+    else:
+        name = \
+            '@' + \
+            user.first_name + \
+            ('' if user.language_code in ['zh', 'ja', 'ko'] else ' ') + \
+            (user.last_name if user.last_name else '')
+        name = name.strip()
+        mention_text = '[{}](tg://user?id={})'.format(name, user_id)
+    return mention_text

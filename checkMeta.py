@@ -24,3 +24,11 @@ class Check:
         self.enabled = '1111100'
         self.since = None
         self.until = None
+
+    # @property
+    # def reminder(self):
+    #     return self.remind
+    #
+    # @reminder.setter
+    # def reminder(self, value):
+    #     self.remind = value
