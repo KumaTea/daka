@@ -34,18 +34,23 @@ class CheckStatusStore:
         with open(os.path.join(data_dir, check_status_store_pickle_file), 'wb') as f:
             pickle.dump(self.check_statuses, f)
 
-    def new_check(self, check: Check):
+    def add_check(self, check: Check):
         check_status = CheckStatus()
         check_status.name = check.name
         check_status.id = check.id
         self.check_statuses[check_status.id] = check_status
         # return logger.info(f'new check status (id={check_status.id}) added')  # noqa
 
+    def del_check(self, check_id: int):
+        if check_id not in self.check_statuses:
+            return logger.error(f'check id {check_id} not exists')
+        del self.check_statuses[check_id]
+
     def init(self, checks: dict):
         for check_id in checks:
             if check_id not in self.check_statuses:
                 check_info = checks[check_id]
-                self.new_check(check_info)
+                self.add_check(check_info)
         self.write_to_pickle()
         return logger.info('check statuses initialized')
 

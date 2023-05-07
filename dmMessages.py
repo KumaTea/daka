@@ -1,6 +1,6 @@
 import checkManager
 from textCollection import DEFAULT_REPLY
-from newCheck import new_check_message_handler
+from dmNewCheck import new_check_message_handler
 
 
 async def process_dm_msg(client, message):

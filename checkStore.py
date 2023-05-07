@@ -37,26 +37,20 @@ class CheckStore:
             self.check_ids_by_user[check_info.user] = [check_id]
         else:
             self.check_ids_by_user[check_info.user].append(check_id)
-        # logger.info(f'new check (id={check_id}) added by user {check_info.user}')  # noqa
-        # self.write_to_pickle()
 
     def edit_check(self, check_id: int, check_info: Check):
         if check_id not in self.checks:
             raise IndexError('check_id not exists')
         self.checks[check_id] = check_info
-        logger.info(f'check (id={check_id}) edited by user {check_info.user}')
-        self.write_to_pickle()
 
     def del_check(self, check_id: int):
         if check_id not in self.checks:
             return logger.warning('check_id not exists')
-        user_id = self.checks[check_id]['user']
+        user_id = self.checks[check_id].user
         self.check_ids_by_user[user_id].remove(check_id)
         if not self.check_ids_by_user[user_id]:
             del self.check_ids_by_user[user_id]
-        logger.info(f'check (id={check_id}) deleted by user {self.checks[check_id]["user"]}')
         del self.checks[check_id]
-        self.write_to_pickle()
 
     def get_check(self, check_id: int):
         if check_id not in self.checks:
