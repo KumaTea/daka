@@ -10,23 +10,24 @@ CALLBACK_TASK = 'CK'
 async def check_and_respond(client, message, check, callback_query=None):
     check_id = check.id
     if check.verify and not message.reply_to_message:
-        return await message.reply_text(NO_VERIFY.format(check.name), parse_mode=ParseMode.MARKDOWN, quote=False)
+        return await message.reply_text(
+            NO_VERIFY.format(check_name=check.name), parse_mode=ParseMode.MARKDOWN, quote=False)
     result_str, result_bool = checkManager.check_in(check_id)
     if result_bool:  # True
         check_status = checkManager.check_status_store.get_check_status(check_id)
         check_name = check.name
         streak = check_status.streak
-        success_message = SUCCESS.format(check_name) + '\n'
+        success_message = CHECK_SUCCESS.format(check_name=check_name) + '\n'
         if streak == 1:
             success_message += FIRST_TIME
         else:
-            success_message += STREAK.format(streak)
+            success_message += STREAK.format(streak=streak)
         if callback_query:
             await callback_query.message.edit_text(success_message, parse_mode=ParseMode.MARKDOWN)
         else:
             return await message.reply_text(success_message, parse_mode=ParseMode.MARKDOWN, quote=False)
     elif result_bool is False:  # already checked in today
-        already_message = ALREADY.format(check.name)
+        already_message = ALREADY.format(check_name=check.name)
         if callback_query:
             await callback_query.message.edit_text(already_message, parse_mode=ParseMode.MARKDOWN)
         else:
@@ -37,7 +38,6 @@ async def check_and_respond(client, message, check, callback_query=None):
 
 # /check
 async def check_command(client, message):
-    chat_id = message.chat.id
     user_id = message.from_user.id
     user_checks = checkManager.check_store.get_checks_by_user(user_id)
     if not user_checks:

@@ -20,8 +20,8 @@ MAX_CHECKS = '您的打卡已达上限，请使用 /del_check 删除后再创建
 
 # del check
 DEL_START = '请选择您要删除的打卡任务：'
-DEL_CONFIRM = '您确定要删除打卡任务 **{}** 吗？\n一旦删除，所有的打卡记录将会消失！'
-DEL_SUCCESS = '打卡任务 **{}** 已删除。'
+DEL_CONFIRM = '您确定要删除打卡任务 **{check_name}** 吗？\n一旦删除，所有的打卡记录将会消失！'
+DEL_SUCCESS = '打卡任务 **{check_name}** 已删除。'
 DEL_CANCEL = '删除操作已取消。'
 DEL_NO_CHECKS = '您目前暂无打卡任务！'
 
@@ -45,11 +45,11 @@ CMD_NOT_AVAILABLE = '这个命令还没有开发哦！'
 
 # group
 NO_CHECKS = '您目前暂未添加打卡任务，请私聊我使用 /new_check 命令添加。'
-NO_VERIFY = '您的打卡任务 **{}** 需要回复一条验证消息！请重试。'
-SUCCESS = '任务 **{}** 打卡成功！'
+NO_VERIFY = '您的打卡任务 **{check_name}** 需要回复一条验证消息！请重试。'
+CHECK_SUCCESS = '任务 **{check_name}** 打卡成功！'
 FIRST_TIME = '这是你的第一次打卡，好的开始是成功的一半！'
-STREAK = '当前已连续打卡 {} 天。'
-ALREADY = '您今天已经打卡过 **{}** 了。'
+STREAK = '当前已连续打卡 {streak} 天。'
+ALREADY = '您今天已经打卡过 **{check_name}** 了。'
 CHOOSE_CHECK = '请选择您要打卡的任务：'
-REMINDER = '你今天还没有完成 **{}** 的打卡哦！截止时间是 {}，要抓紧了！ {}'
-DEADLINE = '你今天没有打卡 **{}** 哦！这是你第 {} 次没有打卡！ {} 😡'
+REMINDER = '你今天还没有完成 **{check_name}** 的打卡哦！截止时间是 {deadline}，要抓紧了！ {mention}'
+DEADLINE = '你今天没有打卡 **{check_name}** 哦！这是你第 {skipped} 次没有打卡！ {mention} 😡'

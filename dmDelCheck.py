@@ -38,7 +38,7 @@ async def step_2_get_cb_del_check(client, callback_query):
         [InlineKeyboardButton('是', callback_data=f'{task_name}_{step}_y'),
          InlineKeyboardButton('否', callback_data=f'{task_name}_{step}_n')]
     ])
-    return await client.send_message(chat_id, DEL_CONFIRM.format(check.name), reply_markup=reply_markup)
+    return await client.send_message(chat_id, DEL_CONFIRM.format(check_name=check.name), reply_markup=reply_markup)
 
 
 async def step_3_get_cb_del_check_confirm(client, callback_query):
@@ -51,7 +51,7 @@ async def step_3_get_cb_del_check_confirm(client, callback_query):
     checkManager.user_statuses.pop(user_id)
     if answer == 'y':
         commit_del_check(check)
-        return await callback_query.message.edit_text(DEL_SUCCESS.format(check_name))
+        return await callback_query.message.edit_text(DEL_SUCCESS.format(check_name=check_name))
     else:
         return await callback_query.message.edit_text(DEL_CANCEL)
 

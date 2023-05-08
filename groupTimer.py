@@ -75,7 +75,11 @@ async def send_notification():
         for check_id in unchecked_reminders:
             check = checkManager.check_store.get_check(check_id)
             user_mention = await get_user_mention_text(dk, user=users[check.user])
-            message = REMINDER.format(check.name, check.remind, user_mention)
+            message = REMINDER.format(
+                check_name=check.name,
+                deadline=check.deadline,
+                mention=user_mention
+            )
             async_tasks.append(dk.send_message(settings.auth_groups[0], message, parse_mode=ParseMode.MARKDOWN))
     await asyncio.gather(*async_tasks)
 
@@ -87,7 +91,11 @@ async def send_notification():
             check_status = checkManager.check_status_store.get_check_status(check_id)
             skipped_count = check_status.skipped
             user_mention = await get_user_mention_text(dk, user=users[check.user])
-            message = DEADLINE.format(check.name, skipped_count, user_mention)
+            message = DEADLINE.format(
+                check_name=check.name,
+                skipped=skipped_count,
+                mention=user_mention
+            )
             async_tasks.append(dk.send_message(settings.auth_groups[0], message, parse_mode=ParseMode.MARKDOWN))
     await asyncio.gather(*async_tasks)
 

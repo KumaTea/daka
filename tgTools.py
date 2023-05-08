@@ -54,6 +54,7 @@ async def get_user_mention_text(client, user_id=None, user=None):
     if user.username:
         mention_text = f'@{user.username}'
     else:
+        user_id = user.id
         name = \
             '@' + \
             user.first_name + \
