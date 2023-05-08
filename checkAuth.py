@@ -7,14 +7,13 @@ from pyrogram.errors import UserNotParticipant
 
 
 def init_auth_users():
-    group_id = settings.auth_groups[0]
     with dk:
-        for member in dk.get_chat_members(group_id):
+        for member in dk.get_chat_members(settings.group_id):
             checkManager.auth_members.append(member.user.id)
-    return logger.info(f'[auth]\tauth members count: {len(checkManager.auth_members)}')
+    return logger.info(f'[Auth]\tauth members count: {len(checkManager.auth_members)}')
 
 
-async def dm_user_in_group(client, user_id, chat_id=settings.auth_groups[0]):
+async def dm_user_in_group(client, user_id, chat_id=settings.group_id):
     if user_id in checkManager.auth_members:
         return True
     try:
@@ -22,7 +21,7 @@ async def dm_user_in_group(client, user_id, chat_id=settings.auth_groups[0]):
         status = member.status
         return status in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.MEMBER]
     except UserNotParticipant:
-        logger.error(f'[auth]\tan user ({user_id}) was rejected in dm')
+        logger.error(f'[Auth]\tan user ({user_id}) was rejected in dm')
         return False
 
 
@@ -30,7 +29,7 @@ def check_group_auth_decorator(func):
     async def wrapper(client, message):
         chat_id = message.chat.id
         if chat_id not in settings.auth_groups:
-            logger.error(f'[auth]\tgroup ({chat_id}) not in auth list. Leaving...')
+            logger.error(f'[Auth]\tgroup ({chat_id}) not in auth list. Leaving...')
             await message.reply_text(GROUP_NOT_IN_AUTH_LIST)
             return await client.leave_chat(message.chat.id)
         else:

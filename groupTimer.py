@@ -54,33 +54,44 @@ def get_unchecked_deadlines():
 async def send_notification():
     unchecked_reminders = get_unchecked_reminders()
     unchecked_deadlines = get_unchecked_deadlines()
+
     user_ids = []
     users = {}
-    async_tasks = []
+    user_mentions = {}
+    stale_checks = []
+
     for check_id in list(set(unchecked_reminders + unchecked_deadlines)):
         check = checkManager.check_store.get_check(check_id)
         user_id = check.user
         user_ids.append(user_id)
     user_ids = list(set(user_ids))
+
     # asynchronous get users
+    async_tasks = []
     for user_id in user_ids:
         async_tasks.append(dk.get_users(user_id))
     users_list = await asyncio.gather(*async_tasks)
     for user in users_list:
         users[user.id] = user
+    async_tasks = []
+    for user_id in user_ids:
+        async_tasks.append(get_user_mention_text(dk, user=users[user_id]))
+    user_mentions_list = await asyncio.gather(*async_tasks)
+    for user_id, user_mention in zip(user_ids, user_mentions_list):
+        user_mentions[user_id] = user_mention
 
     async_tasks = []
     if unchecked_reminders:
         logger.info(f'[ckTmr]\tremind {len(unchecked_reminders)} checks')
         for check_id in unchecked_reminders:
             check = checkManager.check_store.get_check(check_id)
-            user_mention = await get_user_mention_text(dk, user=users[check.user])
+            user_mention = user_mentions[check.user]
             message = REMINDER.format(
                 check_name=check.name,
                 deadline=check.deadline,
                 mention=user_mention
             )
-            async_tasks.append(dk.send_message(settings.auth_groups[0], message, parse_mode=ParseMode.MARKDOWN))
+            async_tasks.append(dk.send_message(settings.group_id, message, parse_mode=ParseMode.MARKDOWN))
     await asyncio.gather(*async_tasks)
 
     async_tasks = []
@@ -90,13 +101,27 @@ async def send_notification():
             check = checkManager.check_store.get_check(check_id)
             check_status = checkManager.check_status_store.get_check_status(check_id)
             skipped_count = check_status.skipped
-            user_mention = await get_user_mention_text(dk, user=users[check.user])
+            user_mention = user_mentions[check.user]
             message = DEADLINE.format(
                 check_name=check.name,
                 skipped=skipped_count,
                 mention=user_mention
             )
-            async_tasks.append(dk.send_message(settings.auth_groups[0], message, parse_mode=ParseMode.MARKDOWN))
+            if skipped_count >= settings.max_skipped_count:
+                stale_checks.append(check_id)
+            async_tasks.append(dk.send_message(settings.group_id, message, parse_mode=ParseMode.MARKDOWN))
     await asyncio.gather(*async_tasks)
+
+    if stale_checks:
+        for check in stale_checks:
+            checkManager.del_check(check.id)
+            user_mention = user_mentions[check.user]
+            await dk.send_message(
+                settings.group_id,
+                CLEAR_STALE_CHECK.format(
+                    check_name=check.name, max_skipped=settings.max_skipped_count, mention=user_mention
+                ),
+                parse_mode=ParseMode.MARKDOWN
+            )
 
     return True
