@@ -83,7 +83,7 @@ class CheckStatusStore:
             if datetime.now() - deadline_of_last_check > timedelta(days=1):
                 # skipped
                 old_skipped = check_status.skipped
-                days_passed = (datetime.now() - deadline_of_last_check).days + 1
+                days_passed = (datetime.now() - deadline_of_last_check).days
                 if old_skipped != days_passed:
                     changed = True
                     check_status.streak = 0

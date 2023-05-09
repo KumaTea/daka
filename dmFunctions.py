@@ -46,11 +46,18 @@ async def dm_unavailable(client, message):
 async def admin_restart(client, message):
     user = message.from_user
     if user.id in settings.administrators:
-        # await message.reply('Updating...')
-        # import subprocess
-        # git_pull = subprocess.run(['git', '-C', '/home/kuma/bots/dk', 'pull'], capture_output=True)
-        # last_line = git_pull.stdout.decode('utf-8').split('\n')[-2].strip()
-        # logger.info('[Bot]\tGit pull: {}'.format(last_line))
+        await message.reply('Updating...')
+        import subprocess
+        git_command = 'ssh -i {host_key} -p {host_port} {host_user}@{host_ip} git -C {bot_dir} pull'.format(
+            host_key=settings.host_key,
+            host_port=settings.host_port,
+            host_user=settings.host_user,
+            host_ip=settings.host_ip,
+            bot_dir=settings.bot_dir
+        )
+        git_pull = subprocess.run(git_command.split(), capture_output=True)
+        last_line = git_pull.stdout.decode('utf-8').split('\n')[-2].strip()
+        logger.info('[Bot]\tGit pull: {}'.format(last_line))
         await message.reply('Restarting...')
         logger.info('[Bot]\tRestart requested by: {} {} ({})'.format(user.first_name, user.last_name or "", user.id))
         checkManager.check_store.write_to_pickle()

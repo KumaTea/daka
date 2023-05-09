@@ -1,0 +1,13 @@
+version: "3"
+services:
+  dk:
+    image: kumatea/dk
+    container_name: dk
+    restart: unless-stopped
+    volumes:
+      - /home/kuma/bots/dk:/home/kuma/bots/dk
+      - /home/kuma/cert:/home/kuma/cert
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
