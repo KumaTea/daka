@@ -12,5 +12,14 @@ RUN set -ex && \
 # Download repo
 # No, I'll use volume mount
 
+# Install dropbear as ssh client
+RUN set -ex && \
+    apt update && \
+    apt install -y dropbear && \
+    apt clean && \
+    rm -rf /root/.cache/* || echo "No cache in .cache" && \
+    rm -rf /var/cache/* || echo "No cache in /var" && \
+    rm -rf /var/lib/apt/lists/* || echo "No apt lists"
+
 # Set entrypoint
 ENTRYPOINT ["/bin/bash", "/home/kuma/bots/dk/docker/run-docker.sh"]

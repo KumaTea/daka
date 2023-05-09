@@ -48,7 +48,7 @@ async def admin_restart(client, message):
     if user.id in settings.administrators:
         await message.reply('Updating...')
         import subprocess
-        git_command = 'ssh -i {host_key} -p {host_port} {host_user}@{host_ip} git -C {bot_dir} pull'.format(
+        git_command = 'dbclient -y -i {host_key} -p {host_port} {host_user}@{host_ip} git -C {bot_dir} pull'.format(
             host_key=settings.host_key,
             host_port=settings.host_port,
             host_user=settings.host_user,
