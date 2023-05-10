@@ -11,6 +11,11 @@ from dmDelCheck import del_check_command, cancel_del_check
 
 
 async def dm_start(client, message):
+    command = message.text
+    if command.find(' ') != -1:
+        parameter = command.split(' ')[1]
+        if parameter in settings.start_commands:
+            return await message.reply_text(DM_START_PARA.format(command=parameter))
     return await message.reply_text(DM_START)
 
 

@@ -36,6 +36,7 @@ GROUP_NOT_IN_AUTH_LIST = '本群不在授权列表中！再见！'
 
 # dm
 DM_START = '你好，欢迎使用打卡警察！\n使用 /help 查看帮助。'
+DM_START_PARA = '点它👉 /{command}'
 DM_HELP = '目前上线功能：\n' \
           '/new_check - 新建打卡\n' \
           '你需要是 @DaKaClub 的成员才能使用本 bot.'
@@ -44,7 +45,7 @@ DEFAULT_REPLY = '你好，欢迎使用打卡警察！\n使用 /help 查看帮助
 CMD_NOT_AVAILABLE = '这个命令还没有开发哦！'
 
 # group
-NO_CHECKS = '你目前暂未添加打卡任务，请私聊我使用 /new_check 命令添加。'
+NO_CHECKS = '你目前暂未添加打卡任务，请[私聊我使用 /new_check 命令](https://t.me/DKJCBot?start=new_check)添加。'
 NO_VERIFY = '你的打卡任务 **{check_name}** 需要回复一条验证消息！请重试。'
 CHECK_SUCCESS = '任务 **{check_name}** 打卡成功！'
 FIRST_TIME = '这是你的第一次打卡，好的开始是成功的一半！'

@@ -41,7 +41,7 @@ async def check_command(client, message):
     user_id = message.from_user.id
     user_checks = checkManager.check_store.get_checks_by_user(user_id)
     if not user_checks:
-        return await message.reply_text(NO_CHECKS)
+        return await message.reply_text(NO_CHECKS, parse_mode=ParseMode.MARKDOWN, disable_web_page_preview=True)
     elif len(user_checks) == 1:
         # only one check, check in immediately
         return await check_and_respond(client, message, user_checks[0])

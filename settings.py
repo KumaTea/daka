@@ -25,3 +25,5 @@ bot_dir = '/home/kuma/bots/dk'
 check_name_max_len = 16
 max_checks_per_user = 10
 max_skipped_count = 7
+
+start_commands = ['new_check']
