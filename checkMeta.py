@@ -32,3 +32,12 @@ class Check:
     # @reminder.setter
     # def reminder(self, value):
     #     self.remind = value
+
+
+class CheckStatus:
+    def __init__(self):
+        self.name = ''
+        self.id = 0
+        self.check_history = []
+        self.streak = 0  # continuous days of check-in
+        self.skipped = 0  # continuous days of skipped
