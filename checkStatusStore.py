@@ -66,7 +66,7 @@ class CheckStatusStore:
         check_id = check.id
         check_status = self.check_statuses[check_id]
         check_history = check_status.check_history
-        check_since = check.since  # YYYYMMDD
+        check_since = check.since  # datetime
         deadline = check.deadline  # HH:MM
         first_deadline = checkMeta.next_deadline(deadline, check_since)
         if len(check_history) == 0:

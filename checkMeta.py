@@ -8,7 +8,7 @@ def next_deadline(deadline_str, date=None):
         date = datetime.strptime(date, '%Y%m%d')
     deadline = datetime.strptime(
         f'{date.year}{date.month}{date.day} {deadline_str}', '%Y%m%d %H:%M')
-    if date > deadline:
+    if date >= deadline:
         deadline += timedelta(days=1)
     return deadline
 

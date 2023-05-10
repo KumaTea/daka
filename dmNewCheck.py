@@ -278,7 +278,7 @@ async def step_7_1_send_btn_confirm(client, user_id):
 
 
 def commit_new_check(user_id, check):
-    check.since = datetime.today().strftime('%Y%m%d')
+    check.since = datetime.now()
     checkManager.add_new_check(check)
     checkManager.user_statuses.pop(user_id)
     return True
