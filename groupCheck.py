@@ -10,8 +10,12 @@ CALLBACK_TASK = 'CK'
 async def check_and_respond(client, message, check, callback_query=None):
     check_id = check.id
     if check.verify and not message.reply_to_message:
-        return await message.reply_text(
-            NO_VERIFY.format(check_name=check.name), parse_mode=ParseMode.MARKDOWN, quote=False)
+        if callback_query:
+            return await callback_query.message.edit_text(
+                NO_VERIFY.format(check_name=check.name), parse_mode=ParseMode.MARKDOWN, quote=False)
+        else:
+            return await message.reply_text(
+                NO_VERIFY.format(check_name=check.name), parse_mode=ParseMode.MARKDOWN, quote=False)
     result_str, result_bool = checkManager.check_in(check_id)
     if result_bool:  # True
         check_status = checkManager.check_status_store.get_check_status(check_id)

@@ -113,7 +113,8 @@ async def send_notification():
     await asyncio.gather(*async_tasks)
 
     if stale_checks:
-        for check in stale_checks:
+        for check_id in stale_checks:
+            check = checkManager.check_store.get_check(check_id)
             checkManager.del_check(check.id)
             user_mention = user_mentions[check.user]
             await dk.send_message(
