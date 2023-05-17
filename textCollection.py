@@ -49,6 +49,7 @@ NO_CHECKS = '你目前暂未添加打卡任务，请[私聊我使用 /new_check 
 NO_VERIFY = '你的打卡任务 **{check_name}** 需要回复一条验证消息！请重试。'
 CHECK_SUCCESS = '任务 **{check_name}** 打卡成功！'
 FIRST_TIME = '这是你的第一次打卡，好的开始是成功的一半！'
+FIRST_RECOVER = '这是你断签后重新开始的第一次打卡，要继续坚持哦 🥺'
 STREAK = '当前已连续打卡 {streak} 天。'
 ALREADY = '你今天已经打卡过 **{check_name}** 了。'
 CHOOSE_CHECK = '请选择你要打卡的任务：'

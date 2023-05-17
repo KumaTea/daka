@@ -12,7 +12,7 @@ async def check_and_respond(client, message, check, callback_query=None):
     if check.verify and not message.reply_to_message:
         if callback_query:
             return await callback_query.message.edit_text(
-                NO_VERIFY.format(check_name=check.name), parse_mode=ParseMode.MARKDOWN, quote=False)
+                NO_VERIFY.format(check_name=check.name), parse_mode=ParseMode.MARKDOWN)
         else:
             return await message.reply_text(
                 NO_VERIFY.format(check_name=check.name), parse_mode=ParseMode.MARKDOWN, quote=False)
@@ -23,7 +23,10 @@ async def check_and_respond(client, message, check, callback_query=None):
         streak = check_status.streak
         success_message = CHECK_SUCCESS.format(check_name=check_name) + '\n'
         if streak == 1:
-            success_message += FIRST_TIME
+            if check_status.check_history:
+                success_message += FIRST_RECOVER
+            else:
+                success_message += FIRST_TIME
         else:
             success_message += STREAK.format(streak=streak)
         if callback_query:
