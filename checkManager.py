@@ -64,7 +64,6 @@ def del_check(check_id: int):
     check_store.write_to_pickle()
     check_status_store.del_check(check_id)
     check_status_store.write_to_pickle()
-    check_timer.del_check(check)
     return logger.info(f'[ckMgr]\tcheck (id={check_id}) deleted')
 
 
